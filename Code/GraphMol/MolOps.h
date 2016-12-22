@@ -18,12 +18,16 @@
 #include <boost/dynamic_bitset.hpp>
 #include <RDGeneral/types.h>
 
+// unfortunately, there's no way to forward declare the Bond::BondStereo enum
+#include <GraphMol/Bond.h>
+
+
 extern const int ci_LOCAL_INF;
 namespace RDKit {
 class ROMol;
 class RWMol;
 class Atom;
-class Bond;
+
 typedef std::vector<double> INVAR_VECT;
 typedef INVAR_VECT::iterator INVAR_VECT_I;
 typedef INVAR_VECT::const_iterator INVAR_VECT_CI;
@@ -838,6 +842,25 @@ void removeStereochemistry(ROMol &mol);
   _CIPCode property if set to any on the double bond.
 */
 void findPotentialStereoBonds(ROMol &mol, bool cleanIt = false);
+//@}
+
+//! \brief Set the bond's stereo-chemistry to the desired E/Z configuration.
+//!
+/*!
+  \param bond    the bond of interest
+  \param what    the desired stereochemistry: either BondStereo::STEREOE or BondStereo::STEREOZ
+
+  This function sets the bond's stereo-chemistry to
+  BondStereo::STEREOE or BondStereo::STEREOZ using Bond::setStereo,
+  but in a much safer way than setting it directly as the neighboring
+  bonds to this bond are marked with BondDir::ENDDOWNRIGHT or
+  BondDir::ENDUPRIGHT as determined by the desired E or Z
+  configuration.
+
+  Note: the bonds stereo atoms are expected to already be present, use
+  findPotentialStereoBonds on the molecule first to achieve this.
+*/
+void setBondStereo(Bond *bond, Bond::BondStereo what);
 //@}
 
 //! returns the number of atoms which have a particular property set

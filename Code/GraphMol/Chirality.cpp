@@ -1187,6 +1187,57 @@ void findPotentialStereoBonds(ROMol &mol, bool cleanIt) {
   }
 }
 
+namespace {
+// determine if a bond already has stereochemistry specified
+bool bondHasDirection(Bond *bond) {
+  int dir = bond->getBondDir();
+  return (dir == Bond::ENDDOWNRIGHT ||
+          dir == Bond::ENDUPRIGHT);
+}
+
+// choose a bond direction that corresponds to the desired E/Z stereochemistry
+Bond::BondDir chooseDirection(Bond *otherBond, Bond::BondStereo desired_stereo) {
+  Bond::BondDir dir = otherBond->getBondDir();
+
+  if (desired_stereo == Bond::STEREOZ) // same direction
+    return dir;
+
+  // choose the opposite direction
+  if (dir == Bond::ENDDOWNRIGHT)
+    return Bond::ENDUPRIGHT;
+
+  return Bond::ENDDOWNRIGHT;
+}
+}
+
+void setBondStereo(Bond *bond, Bond::BondStereo what) {
+  const INT_VECT &stereoAtoms = bond->getStereoAtoms();
+  PRECONDITION(stereoAtoms.size() == 2, "Stereo atoms for bond need to set before calling setBondStereo, use findPotentialStereoBonds first");
+  PRECONDITION(what == Bond::STEREOZ || what == Bond::STEREOE, "Expecting either STEREOZ or STEREOE from Bond::BondStereo");
+
+  ROMol &mol = bond->getOwningMol();
+
+  int bgnNbrIdx = stereoAtoms[0];
+  Bond *bgnNbrBond = mol.getBondBetweenAtoms(bond->getBeginAtomIdx(), bgnNbrIdx);
+
+  int endNbrIdx = stereoAtoms[1];
+  Bond *endNbrBond = mol.getBondBetweenAtoms(bond->getEndAtomIdx(), endNbrIdx);
+
+  if (bondHasDirection(bgnNbrBond)) {
+    // begin bond already has a direction, choose based on that
+    endNbrBond->setBondDir(chooseDirection(bgnNbrBond, what));
+  } else if (bondHasDirection(endNbrBond)) {
+    // end already has a direction, choose based on that
+    bgnNbrBond->setBondDir(chooseDirection(endNbrBond, what));
+  } else {
+    // no direction, so we're free to pick an arbitrary one to begin with
+    bgnNbrBond->setBondDir(Bond::ENDUPRIGHT);
+    endNbrBond->setBondDir(chooseDirection(bgnNbrBond, what));
+  }
+
+  bond->setStereo(what);
+}
+
 // removes chirality markers from sp and sp2 hybridized centers:
 void cleanupChirality(RWMol &mol) {
   for (ROMol::AtomIterator atomIt = mol.beginAtoms(); atomIt != mol.endAtoms();

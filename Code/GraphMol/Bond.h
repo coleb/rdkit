@@ -275,6 +275,13 @@ class Bond : public RDProps {
   BondDir getBondDir() const { return static_cast<BondDir>(d_dirTag); };
 
   //! sets our stereo code
+  /*!
+      You probably don't want to call this directly unless you want to
+      muck with getStereoAtoms and the neighboring bonds setBondDir
+      values at the same time. Use the setBondStereo free function for
+      an easy way to set STEREOE or STEREOZ while altering the
+      neighboring bonds setBondDir at the same time.
+  */
   void setStereo(BondStereo what) { d_stereo = what; };
   //! returns our stereo code
   BondStereo getStereo() const { return static_cast<BondStereo>(d_stereo); };

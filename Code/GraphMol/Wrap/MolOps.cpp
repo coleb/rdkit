@@ -1521,6 +1521,19 @@ struct molops_wrapper {
                 (python::arg("mol"), python::arg("cleanIt") = false),
                 docString.c_str());
 
+    // ------------------------------------------------------------------------
+    docString =
+        "Set the bond's stereo-chemistry to the desired E/Z configuration and the \n\
+         neighboring bonds direction to the appropriate direction to reflect that.\n\
+\n\
+  ARGUMENTS:\n\
+\n\
+    - bond: the bond of interest\n\
+    - what: either BondStereo.STEREOE or BondStereo.STEREOZ\n\
+\n";
+    python::def("SetBondStereo", MolOps::setBondStereo,
+                (python::arg("bond"), python::arg("what")), docString.c_str());
+
 
     // ------------------------------------------------------------------------
     docString =
