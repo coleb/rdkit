@@ -1703,7 +1703,7 @@ M  END
       isosmi = Chem.MolToSmiles(isomer, isomericSmiles=True)
       self.allStereoBonds(stereo_bonds)
 
-      assert isosmi not in isomers
+      self.assertNotIn(isosmi, isomers)
       isomers.add(isosmi)
 
       isomol = Chem.MolFromSmiles(isosmi)
@@ -1744,10 +1744,14 @@ M  END
     isomers = set()
     for bond_stereo, isomer in self.recursive_enumerate_stereo_bonds(mol, [], stereo_bonds):
       isosmi = Chem.MolToSmiles(isomer, isomericSmiles=True)
-      #this seems like a bug! setting these two to opposite stereo should make the other stereo
-      self.getNumUnspecifiedBondStereo(isosmi) == 0
       isomers.add(isosmi)
-    assert len(isomers) == 3
+
+      #this seems like a bug! setting these two to opposite stereo
+      #should make the other stereo, this assertion should fail once
+      #the findPotentialStereoBonds bug is fixed.
+      self.assertEquals(self.getNumUnspecifiedBondStereo(isosmi), 0)
+
+    self.assertEquals(len(isomers), 3)
 
   def test36SubstructMatchStr(self):
     """ test the _SubstructMatchStr function """
